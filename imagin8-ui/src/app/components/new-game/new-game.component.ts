@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { GameStateService } from '../../services/game-state.service';
 
 interface GameSetup {
   tone: string;
@@ -9,8 +10,11 @@ interface GameSetup {
   subGenre: string;
   setting: string;
   plot: string;
-  style: string;
+  style: number;  // Changed to number for slider
   storyteller: string;
+  ancestries: string[];
+  abilities: string[];
+  skills: string[];
 }
 
 @Component({
@@ -72,15 +76,86 @@ interface GameSetup {
 
         <div class="question" *ngIf="currentQuestionIndex === 5">
           <h3>What is the style of the game?</h3>
-          <p><i>Will it be combat heavy or full of roleplaying and social intrigue?</i></p>
-          <div class="input-group">
-            <input type="text" [(ngModel)]="gameSetup.style" placeholder="Enter the game style...">
-            <button (click)="submitAnswer('style')" [disabled]="!gameSetup.style">Next</button>
+          <p><i>Balance between combat and roleplay</i></p>
+          <div class="slider-container">
+            <input 
+              type="range" 
+              min="1" 
+              max="5" 
+              step="1" 
+              [(ngModel)]="gameSetup.style"
+              class="style-slider">
+            <div class="slider-labels">
+              <span>Combat</span>
+              <span>Mixed</span>
+              <span>Roleplay</span>
+            </div>
           </div>
-          <p class="error" *ngIf="showError">Please provide an answer before continuing.</p>
+          <button (click)="submitAnswer('style')" class="next-button">Next</button>
         </div>
 
         <div class="question" *ngIf="currentQuestionIndex === 6">
+          <h3>Are there only specific ancestries allowed in this game?</h3>
+          <p><i>Such as dwarves, elves, humans, and hobbits</i></p>
+          <div class="dynamic-inputs">
+            <div *ngFor="let ancestry of gameSetup.ancestries; let i = index" class="input-group">
+              <label [for]="'ancestry-' + i">Ancestry Option {{i + 1}}</label>
+              <input 
+                [id]="'ancestry-' + i"
+                type="text" 
+                [(ngModel)]="gameSetup.ancestries[i]" 
+                (ngModelChange)="onInputChange('ancestries', i)"
+                placeholder="Enter ancestry...">
+            </div>
+          </div>
+          <button 
+            (click)="submitDynamicAnswer('ancestries')" 
+            class="next-button">
+            {{hasAnyValue(gameSetup.ancestries) ? 'Submit' : 'No'}}
+          </button>
+        </div>
+
+        <div class="question" *ngIf="currentQuestionIndex === 7">
+          <h3>Do all characters have specific abilities?</h3>
+          <div class="dynamic-inputs">
+            <div *ngFor="let ability of gameSetup.abilities; let i = index" class="input-group">
+              <label [for]="'ability-' + i">Ability Option {{i + 1}}</label>
+              <input 
+                [id]="'ability-' + i"
+                type="text" 
+                [(ngModel)]="gameSetup.abilities[i]" 
+                (ngModelChange)="onInputChange('abilities', i)"
+                placeholder="Enter ability...">
+            </div>
+          </div>
+          <button 
+            (click)="submitDynamicAnswer('abilities')" 
+            class="next-button">
+            {{hasAnyValue(gameSetup.abilities) ? 'Submit' : 'No'}}
+          </button>
+        </div>
+
+        <div class="question" *ngIf="currentQuestionIndex === 8">
+          <h3>Do all characters have specific skills?</h3>
+          <div class="dynamic-inputs">
+            <div *ngFor="let skill of gameSetup.skills; let i = index" class="input-group">
+              <label [for]="'skill-' + i">Skill Option {{i + 1}}</label>
+              <input 
+                [id]="'skill-' + i"
+                type="text" 
+                [(ngModel)]="gameSetup.skills[i]" 
+                (ngModelChange)="onInputChange('skills', i)"
+                placeholder="Enter skill...">
+            </div>
+          </div>
+          <button 
+            (click)="submitDynamicAnswer('skills')" 
+            class="next-button">
+            {{hasAnyValue(gameSetup.skills) ? 'Submit' : 'No'}}
+          </button>
+        </div>
+
+        <div class="question" *ngIf="currentQuestionIndex === 9">
           <h3>Who will be your storyteller?</h3>
           <p><i>Will the role rotate?</i></p>
           <div class="input-group">
@@ -115,11 +190,44 @@ interface GameSetup {
         </div>
         <div class="review-item">
           <label>Game Style:</label>
-          <input type="text" [(ngModel)]="gameSetup.style">
+          <div class="slider-container">
+            <input 
+              type="range" 
+              min="1" 
+              max="5" 
+              step="1" 
+              [(ngModel)]="gameSetup.style"
+              class="style-slider">
+          </div>
         </div>
         <div class="review-item">
           <label>Storyteller:</label>
           <input type="text" [(ngModel)]="gameSetup.storyteller">
+        </div>
+        
+        <div class="review-item" *ngIf="hasAnyValue(gameSetup.ancestries)">
+          <label>Ancestries:</label>
+          <div class="tag-list">
+            <span class="tag" *ngFor="let ancestry of gameSetup.ancestries">
+              {{ancestry}}
+            </span>
+          </div>
+        </div>
+        <div class="review-item" *ngIf="hasAnyValue(gameSetup.abilities)">
+          <label>Abilities:</label>
+          <div class="tag-list">
+            <span class="tag" *ngFor="let ability of gameSetup.abilities">
+              {{ability}}
+            </span>
+          </div>
+        </div>
+        <div class="review-item" *ngIf="hasAnyValue(gameSetup.skills)">
+          <label>Skills:</label>
+          <div class="tag-list">
+            <span class="tag" *ngFor="let skill of gameSetup.skills">
+              {{skill}}
+            </span>
+          </div>
         </div>
         
         <div class="button-group">
@@ -222,6 +330,82 @@ interface GameSetup {
         background-color: #95a5a6;
       }
     }
+
+    .slider-container {
+      width: 100%;
+      margin: 2rem 0;
+      position: relative;
+    }
+
+    .style-slider {
+      width: 100%;
+      height: 8px;
+      -webkit-appearance: none;
+      background: #e0e0e0;
+      outline: none;
+      border-radius: 4px;
+
+      &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        cursor: pointer;
+      }
+    }
+
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+      color: var(--text-color);
+      font-size: 0.9rem;
+    }
+
+    .dynamic-inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .tag {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 16px;
+      font-size: 0.9rem;
+    }
+
+    .next-button {
+      min-width: 100px;
+    }
+
+    .dynamic-inputs .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .dynamic-inputs label {
+      font-weight: 500;
+      color: var(--text-color);
+    }
+
+    .dynamic-inputs input {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+    }
   `]
 })
 export class NewGameComponent {
@@ -231,28 +415,52 @@ export class NewGameComponent {
     subGenre: '',
     setting: '',
     plot: '',
-    style: '',
-    storyteller: ''
+    style: 3,
+    storyteller: '',
+    ancestries: [''],
+    abilities: [''],
+    skills: ['']
   };
 
   currentQuestionIndex = 0;
-  showError = false;
   showReview = false;
+  showError = false;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private gameStateService: GameStateService
+  ) {}
 
   submitAnswer(field: keyof GameSetup) {
-    if (!this.gameSetup[field]) {
-      this.showError = true;
-      return;
-    }
-
-    this.showError = false;
-    if (this.currentQuestionIndex < 6) {
-      this.currentQuestionIndex++;
+    if (field === 'style' || this.gameSetup[field]) {
+      this.showError = false;
+      if (this.currentQuestionIndex < 9) {
+        this.currentQuestionIndex++;
+      } else {
+        this.showReview = true;
+      }
     } else {
-      this.showReview = true;
+      this.showError = true;
     }
+  }
+
+  onInputChange(field: 'ancestries' | 'abilities' | 'skills', index: number) {
+    const array = this.gameSetup[field];
+    // Only add a new input if the current one is the last one and has content
+    if (index === array.length - 1 && array[index].trim() !== '') {
+      array.push('');
+    }
+  }
+
+  hasAnyValue(array: string[]): boolean {
+    return array.some(item => item.trim() !== '');
+  }
+
+  submitDynamicAnswer(field: 'ancestries' | 'abilities' | 'skills') {
+    const array = this.gameSetup[field];
+    // Remove any empty values
+    this.gameSetup[field] = array.filter(item => item.trim() !== '');
+    this.nextQuestion();
   }
 
   cancel() {
@@ -260,7 +468,14 @@ export class NewGameComponent {
   }
 
   submit() {
-    // Here we would typically save the game setup data
+    // Save the game setup to the service
+    this.gameStateService.setGameSetup(this.gameSetup);
+    
+    // Navigate to character creation
     this.router.navigate(['/create-character']);
+  }
+
+  nextQuestion() {
+    this.currentQuestionIndex++;
   }
 } 
