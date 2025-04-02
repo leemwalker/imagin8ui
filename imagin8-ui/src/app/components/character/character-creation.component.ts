@@ -30,8 +30,9 @@ interface AttributePoints {
           <h3>What is your Name?</h3>
           <div class="input-group">
             <input type="text" (keydown.enter)="submitBasicInfo('name')" [(ngModel)]="characterBasics.name" placeholder="Enter character name...">
-            <button (click)="submitBasicInfo('name')" [disabled]="!characterBasics.name">Next</button>
           </div>
+          <br>
+          <button (click)="submitBasicInfo('name')" [disabled]="!characterBasics.name">Next</button>
           <p class="error" *ngIf="showError">Please provide a name before continuing.</p>
         </div>
 
@@ -54,6 +55,7 @@ interface AttributePoints {
               [(ngModel)]="characterBasics.ancestry" 
               placeholder="Enter your ancestry...">
           </div>
+          <br>
           <button (click)="nextStep()" [disabled]="!characterBasics.ancestry">Next</button>
         </div>
 
@@ -61,8 +63,9 @@ interface AttributePoints {
           <h3>What do you look like?</h3>
           <div class="input-group">
             <textarea [(ngModel)]="characterBasics.appearance" placeholder="Describe your character's appearance..."></textarea>
-            <button (click)="submitBasicInfo('appearance')" [disabled]="!characterBasics.appearance">Next</button>
           </div>
+          <br>
+          <button (click)="submitBasicInfo('appearance')" [disabled]="!characterBasics.appearance">Next</button>
           <p class="error" *ngIf="showError">Please provide an appearance description before continuing.</p>
         </div>
 
@@ -71,8 +74,9 @@ interface AttributePoints {
           <p><i>Asteroid miner? Social Climber?</i></p>
           <div class="input-group">
             <input type="text" (keydown.enter)="submitBasicInfo('background')" [(ngModel)]="characterBasics.background" placeholder="Enter background...">
-            <button (click)="submitBasicInfo('background')" [disabled]="!characterBasics.background">Next</button>
           </div>
+          <br>
+          <button (click)="submitBasicInfo('background')" [disabled]="!characterBasics.background">Next</button>
           <p class="error" *ngIf="showError">Please provide a background before continuing.</p>
         </div>
 
@@ -80,16 +84,42 @@ interface AttributePoints {
           <h3>What is your goal/ambition?</h3>
           <div class="input-group">
             <textarea (keydown.enter)="submitBasicInfo('goal')" [(ngModel)]="characterBasics.goal" placeholder="Describe your character's goals..."></textarea>
-            <button (click)="submitBasicInfo('goal')" [disabled]="!characterBasics.goal">Next</button>
           </div>
+          <br>
+          <button (click)="submitBasicInfo('goal')" [disabled]="!characterBasics.goal">Next</button>
           <p class="error" *ngIf="showError">Please provide a goal before continuing.</p>
         </div>
 
+        <!-- Attributes Selection -->
+        <div class="question" *ngIf="currentStep === 'attributes'">
+          <h3>What are your character's attributes?</h3>
+          <p><i>These are the attributes that your character is born with and are split into physical, mental, and sensory categories.</i></p>
+          <br>
+          <div class="attributes-section">
+            <div class="attributes-list">
+              <h2>Physical</h2>
+              <div class="phys-attribute-item" *ngFor="let attr of phys_attributes; let i = index; trackBy:trackByFn">">
+                <input type="text" [(ngModel)]="phys_attributes[i]" placeholder="Enter physical attribute name...">
+              </div>
+              <h2>Mental</h2>
+              <div class="ment-attribute-item" *ngFor="let attr of ment_attributes; let i = index; trackBy:trackByFn">">
+                <input type="text" [(ngModel)]="ment_attributes[i]" placeholder="Enter mental attribute name...">
+              </div>
+              <h2>Sensory</h2>
+              <div class="sense-attribute-item" *ngFor="let attr of sens_attributes; let i = index; trackBy:trackByFn">">
+                <input type="text" [(ngModel)]="sens_attributes[i]" placeholder="Enter sensory attribute name...">
+              </div>
+            </div>
+          </div>
+          <br>
+          <button (click)="nextStep()">Next</button>
+        </div>
         
         <!-- Skills Selection -->
         <div class="question" *ngIf="currentStep === 'skills'">
-          <h3>What are some thing's that your character is good at? These can be things they are naturally gifted at such as being a talented swimmer or things they have trained at such as a specific martial art.</h3>
-          <br><br>
+          <h3>What are some things that your character is good at?</h3>
+          <p><i>These can be things they are naturally gifted at such as being a talented swimmer or things they have trained at such as a specific martial art.</i></p>
+          <br>
           <div class="skills-section">
             <div class="skill-list">
               <div class="skill-item" *ngFor="let skill of skills; let i = index; trackBy:trackByFn">
@@ -97,105 +127,25 @@ interface AttributePoints {
               </div>
             </div>
           </div>
+          <br>
           <button (click)="nextStep()">Next</button>
         </div>
 
         <!-- Abilities Selection -->
         <div class="question" *ngIf="currentStep === 'abilities'">
-          <h3>Select your character's abilities</h3>
-          <div class="checkbox-group">
-            <div *ngFor="let ability of allAbilities" class="checkbox-item">
-              <input 
-                type="checkbox" 
-                [id]="'ability-' + ability"
-                [(ngModel)]="selectedAbilitiesMap[ability]"
-                (change)="toggleAbilitySelection(ability)">
-              <label [for]="'ability-' + ability">{{ability}}</label>
-            </div>
-            <div class="custom-input">
-              <input 
-                type="text" 
-                [(ngModel)]="newAbility" 
-                placeholder="Add custom ability...">
-              <button (click)="addCustomAbility()">Add</button>
+          <h3>Does your character have any extraordinary abilities?</h3>
+          <p><i>These can be superpowers such as flight or super strength or the ability to use magic.</i></p>
+          <br>
+          <div class="skills-section">
+            <div class="skill-list">
+              <div class="skill-item" *ngFor="let skill of skills; let i = index; trackBy:trackByFn">
+                <input type="text" [(ngModel)]="skills[i]" placeholder="Enter skill name...">
+              </div>
             </div>
           </div>
+          <br>
           <button (click)="nextStep()">Next</button>
         </div>
-      </div>
-
-      <!-- Point Allocation Section -->
-      <div class="section" *ngIf="currentStep === 'points'">
-        <div class="points-info">
-          <h3>Point Allocation</h3>
-          <p>You have {{remainingAttributePoints}} attribute points and {{remainingSkillPoints}} skill points remaining.</p>
-          <p>Points from either pool can be used for abilities. No attribute, skill, or ability can have more than 2 points.</p>
-        </div>
-
-        <!-- Attributes -->
-        <div class="attributes-section">
-          <h4>Attributes</h4>
-          <div class="attribute-item" *ngFor="let attr of attributes">
-            <label>{{attr}}</label>
-            <div class="point-buttons">
-              <button 
-                *ngFor="let i of [1, 2]" 
-                [class.selected]="attributePoints[attr] === i"
-                [disabled]="!canAllocatePoint(attr, i, 'attribute')"
-                (click)="allocatePoint(attr, i, 'attribute')"
-                class="point-button">
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Updated Skills section -->
-        <div class="skills-section">
-          <h4>Skills</h4>
-          <div class="skill-list">
-            <div class="skill-item" *ngFor="let skill of allSkills">
-              <label>{{skill}}</label>
-              <div class="point-buttons">
-                <button 
-                  *ngFor="let j of [0, 1, 2]" 
-                  [class.selected]="skillPoints[skill] === j"
-                  [disabled]="!canAllocatePoint(skill, j, 'skill')"
-                  (click)="allocatePoint(skill, j, 'skill')"
-                  class="point-button">
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Updated Abilities section -->
-        <div class="abilities-section">
-          <h4>Abilities</h4>
-          <div class="ability-list">
-            <div class="ability-item" *ngFor="let ability of allAbilities">
-              <label>{{ability}}</label>
-              <div class="point-buttons">
-                <button 
-                  *ngFor="let j of [0, 1, 2]" 
-                  [class.selected]="abilityPoints[ability] === j"
-                  [disabled]="!canAllocatePoint(ability, j, 'ability')"
-                  (click)="allocatePoint(ability, j, 'ability')"
-                  class="point-button">
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="button-group">
-          <button (click)="cancel()">Cancel</button>
-          <button 
-            (click)="showCharacterSheet()" 
-            [disabled]="!canShowCharacterSheet()">
-            View Character Sheet
-          </button>
-        </div>
-      </div>
 
       <!-- Character Sheet View -->
       <div class="section" *ngIf="currentStep === 'sheet'">
@@ -473,8 +423,6 @@ export class CharacterCreationComponent implements OnInit {
   };
 
   // Skills and Abilities
-  selectedSkills: string[] = [];
-  selectedAbilities: string[] = [];
   allSkills: string[] = [];
   allAbilities: string[] = [];
 
@@ -490,9 +438,12 @@ export class CharacterCreationComponent implements OnInit {
   // Add missing properties
   newSkill: string = '';
   newAbility: string = '';
+  newAttribute: string = '';
   skills: string[] = Array(8).fill('');
-  selectedSkillsMap: { [key: string]: boolean } = {};
-  selectedAbilitiesMap: { [key: string]: boolean } = {};
+  abilities: string[] = Array(8).fill('');
+  phys_attributes: string[] = Array(8).fill('');
+  ment_attributes: string[] = Array(8).fill('');
+  sens_attributes: string[] = Array(8).fill('');
 
   trackByFn(index: any, item: any) {
     return index;
@@ -513,33 +464,8 @@ export class CharacterCreationComponent implements OnInit {
     if (this.gameSetup) {
       this.allSkills = [...this.gameSetup.skills];
       this.allAbilities = [...this.gameSetup.abilities];
-    } else {
-      // Initialize with some default options if no game setup
-      this.allSkills = ['Athletics', 'Stealth', 'Investigation', 'Persuasion', 'Survival'];
-      this.allAbilities = ['Combat Training', 'Magic Affinity', 'Technical Expertise', 'Social Influence'];
     }
 
-    // Initialize the maps for checkbox bindings
-    this.allSkills.forEach(skill => this.selectedSkillsMap[skill] = false);
-    this.allAbilities.forEach(ability => this.selectedAbilitiesMap[ability] = false);
-  }
-
-  toggleSkill(skill: string) {
-    const index = this.selectedSkills.indexOf(skill);
-    if (index === -1) {
-      this.selectedSkills.push(skill);
-    } else {
-      this.selectedSkills.splice(index, 1);
-    }
-  }
-
-  toggleAbility(ability: string) {
-    const index = this.selectedAbilities.indexOf(ability);
-    if (index === -1) {
-      this.selectedAbilities.push(ability);
-    } else {
-      this.selectedAbilities.splice(index, 1);
-    }
   }
 
   submitBasicInfo(field: keyof CharacterBasics) {
@@ -621,14 +547,6 @@ export class CharacterCreationComponent implements OnInit {
     this.router.navigate(['/']);
   }
 
-  getSelectedSkills(): string[] {
-    return this.selectedSkills;
-  }
-
-  getSelectedAbilities(): string[] {
-    return this.selectedAbilities;
-  }
-
   nextStep() {
     switch (this.currentStep) {
       case 'basics':
@@ -659,39 +577,13 @@ export class CharacterCreationComponent implements OnInit {
 
   addCustomSkill() {
     if (this.newSkill.trim()) {
-      this.selectedSkills.push(this.newSkill.trim());
       this.newSkill = '';
     }
   }
 
   addCustomAbility() {
     if (this.newAbility.trim()) {
-      this.selectedAbilities.push(this.newAbility.trim());
       this.newAbility = '';
-    }
-  }
-
-  isSkillSelected(skill: string): boolean {
-    return this.selectedSkills.includes(skill);
-  }
-
-  isAbilitySelected(ability: string): boolean {
-    return this.selectedAbilities.includes(ability);
-  }
-
-  toggleSkillSelection(skill: string) {
-    if (this.isSkillSelected(skill)) {
-      this.selectedSkills = this.selectedSkills.filter(s => s !== skill);
-    } else {
-      this.selectedSkills.push(skill);
-    }
-  }
-
-  toggleAbilitySelection(ability: string) {
-    if (this.isAbilitySelected(ability)) {
-      this.selectedAbilities = this.selectedAbilities.filter(a => a !== ability);
-    } else {
-      this.selectedAbilities.push(ability);
     }
   }
 
