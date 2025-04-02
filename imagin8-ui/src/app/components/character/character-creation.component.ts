@@ -29,7 +29,7 @@ interface AttributePoints {
         <div class="question" *ngIf="currentStep === 'basics'">
           <h3>What is your Name?</h3>
           <div class="input-group">
-            <input type="text" [(ngModel)]="characterBasics.name" placeholder="Enter character name...">
+            <input type="text" (keydown.enter)="submitBasicInfo('name')" [(ngModel)]="characterBasics.name" placeholder="Enter character name...">
             <button (click)="submitBasicInfo('name')" [disabled]="!characterBasics.name">Next</button>
           </div>
           <p class="error" *ngIf="showError">Please provide a name before continuing.</p>
@@ -50,6 +50,7 @@ interface AttributePoints {
             <input 
               *ngIf="!gameSetup?.ancestries?.length"
               type="text" 
+              (keydown.enter)="nextStep()"
               [(ngModel)]="characterBasics.ancestry" 
               placeholder="Enter your ancestry...">
           </div>
@@ -69,7 +70,7 @@ interface AttributePoints {
           <h3>What is your Background?</h3>
           <p><i>Asteroid miner? Social Climber?</i></p>
           <div class="input-group">
-            <input type="text" [(ngModel)]="characterBasics.background" placeholder="Enter background...">
+            <input type="text" (keydown.enter)="submitBasicInfo('background')" [(ngModel)]="characterBasics.background" placeholder="Enter background...">
             <button (click)="submitBasicInfo('background')" [disabled]="!characterBasics.background">Next</button>
           </div>
           <p class="error" *ngIf="showError">Please provide a background before continuing.</p>
@@ -78,30 +79,22 @@ interface AttributePoints {
         <div class="question" *ngIf="currentStep === 'goal'">
           <h3>What is your goal/ambition?</h3>
           <div class="input-group">
-            <textarea [(ngModel)]="characterBasics.goal" placeholder="Describe your character's goals..."></textarea>
+            <textarea (keydown.enter)="submitBasicInfo('goal')" [(ngModel)]="characterBasics.goal" placeholder="Describe your character's goals..."></textarea>
             <button (click)="submitBasicInfo('goal')" [disabled]="!characterBasics.goal">Next</button>
           </div>
           <p class="error" *ngIf="showError">Please provide a goal before continuing.</p>
         </div>
 
+        
         <!-- Skills Selection -->
         <div class="question" *ngIf="currentStep === 'skills'">
-          <h3>Select your character's skills</h3>
-          <div class="checkbox-group">
-            <div *ngFor="let skill of allSkills" class="checkbox-item">
-              <input 
-                type="checkbox" 
-                [id]="'skill-' + skill"
-                [(ngModel)]="selectedSkillsMap[skill]"
-                (change)="toggleSkillSelection(skill)">
-              <label [for]="'skill-' + skill">{{skill}}</label>
-            </div>
-            <div class="custom-input">
-              <input 
-                type="text" 
-                [(ngModel)]="newSkill" 
-                placeholder="Add custom skill...">
-              <button (click)="addCustomSkill()">Add</button>
+          <h3>What are some thing's that your character is good at? These can be things they are naturally gifted at such as being a talented swimmer or things they have trained at such as a specific martial art.</h3>
+          <br><br>
+          <div class="skills-section">
+            <div class="skill-list">
+              <div class="skill-item" *ngFor="let skill of skills; let i = index; trackBy:trackByFn">
+                <input type="text" [(ngModel)]="skills[i]" placeholder="Enter skill name...">
+              </div>
             </div>
           </div>
           <button (click)="nextStep()">Next</button>
@@ -497,8 +490,13 @@ export class CharacterCreationComponent implements OnInit {
   // Add missing properties
   newSkill: string = '';
   newAbility: string = '';
+  skills: string[] = Array(8).fill('');
   selectedSkillsMap: { [key: string]: boolean } = {};
   selectedAbilitiesMap: { [key: string]: boolean } = {};
+
+  trackByFn(index: any, item: any) {
+    return index;
+  }
 
   constructor(
     private router: Router,
